@@ -49,13 +49,13 @@ def lambda_handler(event, context):
       
            print(df_s3_data.head())
 
-   except E xception as err:
-      print(err)
+        except E xception as err:
+           print(err)
     
-    return {
+        return {
         "statusCode": 200,
         "body": json.dumps({
             "message": "output data {data}".format(data=df_s3_data.head()),
             # "location": ip.text.replace("\n", "")
         }),
-    }
+        }
