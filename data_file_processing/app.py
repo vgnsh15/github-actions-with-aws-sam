@@ -1,7 +1,9 @@
 import json
-
 # import requests
-
+import boto3
+import pandas as pd
+from io import BytesIO
+s3_client = boto3.client('s3')
 
 def lambda_handler(event, context):
     """Sample pure Lambda function
@@ -33,13 +35,6 @@ def lambda_handler(event, context):
 
     #     raise e
     
-    import boto3
-    import pandas as pd
-    from io import BytesIO
-
-    s3_client = boto3.client('s3')
-
-    def lambda_handler(event, context):
         try:
            bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
            s3_file_name = event["Records"][0]["s3"]["object"]["key"]
