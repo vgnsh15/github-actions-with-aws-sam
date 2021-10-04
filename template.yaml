@@ -17,6 +17,9 @@ Resources:
       CodeUri: data_file_processing/
       Handler: app.lambda_handler
       Runtime: python3.8
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: adbassessment
       Architectures:
         - x86_64
       Events:
