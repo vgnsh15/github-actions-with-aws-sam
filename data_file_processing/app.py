@@ -32,11 +32,30 @@ def lambda_handler(event, context):
     #     print(e)
 
     #     raise e
+    
+    import boto3
+    import pandas as pd
+    from io import BytesIO
 
+    s3_client = boto3.client('s3')
+
+    def lambda_handler(event, context):
+        try:
+           bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
+           s3_file_name = event["Records"][0]["s3"]["object"]["key"]
+           resp = s3_client.get_object(Bucket=bucket_name, Key=s3_file_name)
+           df_s3_data = pd.read_csv(resp['Body'], sep=',')
+
+      
+           print(df_s3_data.head())
+
+   except E xception as err:
+      print(err)
+    
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "message": "hello world",
+            "message": "output data {data}".format(data=df_s3_data.head()),
             # "location": ip.text.replace("\n", "")
         }),
     }
