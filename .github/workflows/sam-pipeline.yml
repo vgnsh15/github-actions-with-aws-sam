@@ -20,5 +20,5 @@ jobs:
 # Run Unit tests- Specify unit tests here 
 
 # sam deploy
-      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name sam-hello-world --s3-bucket arn:aws:s3:::adbassessment/deploy/ --capabilities CAPABILITY_IAM --region us-west-2 
+      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name sam-hello-world --s3-bucket arn:aws:s3:::adbassessment --s3-prefix /deploy --capabilities CAPABILITY_IAM --region us-west-2 
 
