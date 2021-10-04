@@ -35,22 +35,22 @@ def lambda_handler(event, context):
 
     #     raise e
     
-        try:
-           bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
-           s3_file_name = event["Records"][0]["s3"]["object"]["key"]
-           resp = s3_client.get_object(Bucket=bucket_name, Key=s3_file_name)
-           df_s3_data = pd.read_csv(resp['Body'], sep=',')
+    try:
+        bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
+        s3_file_name = event["Records"][0]["s3"]["object"]["key"]
+        resp = s3_client.get_object(Bucket=bucket_name, Key=s3_file_name)
+        df_s3_data = pd.read_csv(resp['Body'], sep=',')
 
       
-           print(df_s3_data.head())
+        print(df_s3_data.head())
 
-        except Exception as err:
-           print(err)
+    except Exception as err:
+        print(err)
     
-        return {
+    return {
         "statusCode": 200,
         "body": json.dumps({
             "message": "output data {data}".format(data=df_s3_data.head()),
             # "location": ip.text.replace("\n", "")
         }),
-        }
+    }
