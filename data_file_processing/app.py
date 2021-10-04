@@ -49,7 +49,7 @@ def lambda_handler(event, context):
       
            print(df_s3_data.head())
 
-        except E xception as err:
+        except Exception as err:
            print(err)
     
         return {
