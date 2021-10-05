@@ -41,10 +41,25 @@ def lambda_handler(event, context):
         print("S:",bucket_name)
         print("file:",s3_file_name)
         resp = s3_client.get_object(Bucket=bucket_name, Key=s3_file_name)
-        df_s3_data = pd.read_csv(resp['Body'], sep='\t')
+        df= pd.read_csv(resp['Body'], sep='\t')
+        
+        #df = pd.read_csv("data_4_63_84_41.tsv", usecols=['ip','pagename', 'page_url', 'product_list', 'referrer','event_list','hit_time_gmt'], sep='\t')
+        df['search_domain'] = df['referrer'].str.extract(r'(https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+)')
+        df['search_key'] = df['referrer'].str.extract(r'\W*\\?=([^&#]*)')
+        df['product_list'] = df['product_list'].fillna("None")
+        df['event_list'] = df['event_list']
+        df['product_list_new'] = df['product_list'].fillna("None").str.split(';').str[3]
+        formatted_df = df[['ip','search_key','event_list', 'product_list_new', 'search_domain','hit_time_gmt']]
+        purchased_df_query = """SELECT ip FROM formatted_df where event_list = 1 order by ip,hit_time_gmt  """
+        df_hit_query = """SELECT * FROM formatted_df f_df inner join purchased_df_query p_df on f_df.ip=p_df.ip order by ip,hit_time_gmt  """
+        purchased_df = ps.sqldf(purchased_df_query, locals())
+        join_df = pd.merge(formatted_df, purchased_df,how='inner', on=['ip'])[['ip','search_key','search_domain','product_list_new']]
+        join_df.rename({'product_list_new': 'revenue'}, axis=1, inplace=True)
+        revenue_df=join_df.groupby(['ip','revenue'])['search_key','search_domain'].agg(list)
+        print(revenue_df)
 
       
-        print(df_s3_data.head())
+        print(revenue_df.head())
 
     except Exception as err:
         print(err)
@@ -52,7 +67,7 @@ def lambda_handler(event, context):
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "message": "output data {data}".format(data=df_s3_data.head()),
+            "message": "output data {data}".format(data=revenue_df.head()),
             # "location": ip.text.replace("\n", "")
         }),
     }
