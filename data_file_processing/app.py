@@ -61,7 +61,19 @@ def lambda_handler(event, context):
 
       
         print(revenue_df.head())
+        
+        with io.StringIO() as csv_buffer:
+            revenue_df.to_csv(csv_buffer, index=False)
 
+            response = s3_client.put_object(Bucket='adbassessmwnt', Key="output_files/revenue.csv", Body=csv_buffer.getvalue())
+
+            status = response.get("ResponseMetadata", {}).get("HTTPStatusCode")
+
+            if status == 200:
+                print(f"Successful S3 put_object response. Status - {status}")
+            else:
+                print(f"Unsuccessful S3 put_object response. Status - {status}")
+        
     except Exception as err:
         print(err)
     
