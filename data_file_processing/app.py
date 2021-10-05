@@ -2,7 +2,7 @@ import json
 # import requests
 import boto3
 import pandas as pd
-import pandassql as ps
+import pandasql as ps
 from io import BytesIO
 s3_client = boto3.client('s3')
 
