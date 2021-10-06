@@ -134,8 +134,8 @@ def lambda_handler(event, context):
         df['event_list'] = df['event_list']
         df['product_list_new'] = df['product_list'].fillna("None").str.split(';').str[3]
         formatted_df = df[['ip','search_key','event_list', 'product_list_new', 'search_domain','hit_time_gmt']]
-        purchased_df_query = """SELECT ip FROM formatted_df where event_list = 1 order by ip,hit_time_gmt  """
-        df_hit_query = """SELECT * FROM formatted_df f_df inner join purchased_df_query p_df on f_df.ip=p_df.ip order by ip,hit_time_gmt  """
+        purchased_df_query = SELECT ip FROM formatted_df where event_list = 1 order by ip,hit_time_gmt
+        df_hit_query = SELECT * FROM formatted_df f_df inner join purchased_df_query p_df on f_df.ip=p_df.ip order by ip,hit_time_gmt
         purchased_df = ps.sqldf(purchased_df_query, locals())
         join_df = pd.merge(formatted_df, purchased_df,how='inner', on=['ip'])[['ip','search_key','search_domain','product_list_new']]
         join_df.rename({'product_list_new': 'revenue'}, axis=1, inplace=True)
