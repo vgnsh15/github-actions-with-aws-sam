@@ -3,11 +3,91 @@ import json
 import boto3
 import pandas as pd
 import pandasql as ps
+from pandasql import sqldf
 from io import BytesIO
 s3_client = boto3.client('s3')
 
+class Events:
+    
+    def function(x):
+        sum=0
+        #print("outer for:",str(x).split(','))
+        for val in str(x).split(','):
+            revenue = str(val).split(';')
+            #print("inner:",revenue)
+            if len(revenue)>3 and (revenue[3]!=None and revenue[3]!="" and revenue[3]!=" "):
+                #print(revenue[3])
+                sum+=float(revenue[3].strip())
+        return sum
+
+    def function2(x):
+        event=[]
+        for event_trans in str(x).split(','):
+            if str(event_trans) is None or str(event_trans) == "" or str(event_trans) == " " or str(event_trans) == "NaN" or str(event_trans) == "nan":
+                pass
+            elif int(float(event_trans)) == 1:
+                event_trans = int(float(event_trans))
+                print(event_trans)
+                return event_trans
+    
+    
+    def transaction_events(self):
+        try:
+            bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
+            s3_file_name = event["Records"][0]["s3"]["object"]["key"]
+            print("S:",bucket_name)
+            print("file:",s3_file_name)
+            resp = s3_client.get_object(Bucket=bucket_name, Key=s3_file_name)
+            df= pd.read_csv(resp['Body'], sep='\t')
+            df['revenue'] = df['product_list'].map(function)
+            df['even_list_values'] = df['event_list'].map(function2)
+            df['search_domain'] = df['referrer'].str.extract(r'(https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+)')
+            df['search_key'] = df['referrer'].str.extract(r'\W*\\?=([^&#]*)')
+            formatted_df = df[['ip','search_key','even_list_values', 'revenue', 'search_domain','hit_time_gmt']]
+            purchased_df_query = """SELECT ip FROM formatted_df where even_list_values = 1 order by ip,hit_time_gmt  """
+            df_hit_query = """SELECT * FROM formatted_df f_df inner join purchased_df_query p_df on f_df.ip=p_df.ip where search_key !='nan' order by ip,hit_time_gmt  """
+            purchased_df = ps.sqldf(purchased_df_query, locals())
+            join_df = pd.merge(formatted_df, purchased_df,how='inner', on=['ip'])[['ip','search_key','search_domain','revenue','hit_time_gmt']]
+            join_df.dropna()
+            partition_sql="""select search_key,search_domain,total_revenue from (select *,sum(revenue) over (partition by ip) as total_revenue, ROW_NUMBER() OVER (partition by ip order by hit_time_gmt) as rnk from join_df) where rnk=1; """
+            pysqldf = lambda q : sqldf(q,globals())
+            revenue_df = pysqldf(partition3_sql)
+            
+        
+      
+        
+        
+            with io.StringIO() as csv_buffer:
+                revenue_df.to_csv(csv_buffer, index=False)
+
+                response = s3_client.put_object(Bucket='adbassessmwnt', Key="output_files/revenue.csv", Body=csv_buffer.getvalue())
+
+                status = response.get("ResponseMetadata", {}).get("HTTPStatusCode")
+
+                if status == 200:
+                    print(f"Successful S3 put_object response. Status - {status}")
+                    return {
+                        "statusCode": status,
+                        "body": json.dumps({
+                        "message": "Successful S3 put_object response"),
+                        # "location": ip.text.replace("\n", "")
+                           }),
+                    }
+                else:
+                    print(f"Unsuccessful S3 put_object response. Status - {status}")
+                    return {
+                        "statusCode": status,
+                        "body": json.dumps({
+                        "message": "Something went wrong in the processing"),
+                        # "location": ip.text.replace("\n", "")
+                           }),
+                    }
+        
+        except Exception as err:
+            print(err)
+
 def lambda_handler(event, context):
-    """Sample pure Lambda function
+    """
 
     Parameters
     ----------
@@ -36,6 +116,8 @@ def lambda_handler(event, context):
 
     #     raise e
     
+    
+    """
     try:
         bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
         s3_file_name = event["Records"][0]["s3"]["object"]["key"]
@@ -43,6 +125,7 @@ def lambda_handler(event, context):
         print("file:",s3_file_name)
         resp = s3_client.get_object(Bucket=bucket_name, Key=s3_file_name)
         df= pd.read_csv(resp['Body'], sep='\t')
+        
         
         #df = pd.read_csv("data_4_63_84_41.tsv", usecols=['ip','pagename', 'page_url', 'product_list', 'referrer','event_list','hit_time_gmt'], sep='\t')
         df['search_domain'] = df['referrer'].str.extract(r'(https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+)')
@@ -58,9 +141,11 @@ def lambda_handler(event, context):
         join_df.rename({'product_list_new': 'revenue'}, axis=1, inplace=True)
         revenue_df=join_df.groupby(['ip','revenue'])['search_key','search_domain'].agg(list)
         print(revenue_df)
-
-      
         print(revenue_df.head())
+        
+        
+      
+        
         
         with io.StringIO() as csv_buffer:
             revenue_df.to_csv(csv_buffer, index=False)
@@ -84,3 +169,7 @@ def lambda_handler(event, context):
             # "location": ip.text.replace("\n", "")
         }),
     }
+    
+    """
+    
+    Events().transaction_events()
