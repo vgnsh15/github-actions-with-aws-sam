@@ -69,7 +69,7 @@ class Events:
                     return {
                         "statusCode": status,
                         "body": json.dumps({
-                        "message": "Successful S3 put_object response"),
+                        "message": "Successful S3 put_object response",
                         # "location": ip.text.replace("\n", "")
                            }),
                     }
@@ -78,7 +78,7 @@ class Events:
                     return {
                         "statusCode": status,
                         "body": json.dumps({
-                        "message": "Something went wrong in the processing"),
+                        "message": "Something went wrong in the processing",
                         # "location": ip.text.replace("\n", "")
                            }),
                     }
