@@ -31,7 +31,7 @@ class Events:
                 return event_trans
     
     
-    def transaction_events(self):
+    def transaction_events(self,event,context):
         try:
             bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
             s3_file_name = event["Records"][0]["s3"]["object"]["key"]
@@ -172,4 +172,4 @@ def lambda_handler(event, context):
     
     """
     
-    Events().transaction_events()
+    Events().transaction_events(event,context)
