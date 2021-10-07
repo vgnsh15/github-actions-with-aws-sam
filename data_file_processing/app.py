@@ -51,7 +51,7 @@ class Events:
             join_df.dropna()
             partition_sql="""select search_key,search_domain,total_revenue from (select *,sum(revenue) over (partition by ip) as total_revenue, ROW_NUMBER() OVER (partition by ip order by hit_time_gmt) as rnk from join_df) where rnk=1; """
             pysqldf = lambda q : sqldf(q,globals())
-            revenue_df = pysqldf(partition3_sql)
+            revenue_df = pysqldf(partition_sql)
             
         
       
