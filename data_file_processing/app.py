@@ -53,7 +53,7 @@ class Events:
             join_df['RN'] = join_df.sort_values(['hit_time_gmt'], ascending=[True]).groupby(['ip']).cumcount() + 1
             join_df['total_revenue'] = join_df.groupby('ip').revenue.transform(np.sum)
             final_sql="""select search_key,search_domain,total_revenue from join_df where RN=1;"""
-            pysqldf = lambda q : sqldf(q,globals())
+            pysqldf = lambda q : sqldf(q,locals())
             revenue_df = pysqldf(final_sql)
             #partition_df
             #partition_sql="""select search_key,search_domain,total_revenue from (select *,sum(revenue) over (partition by ip) as total_revenue, ROW_NUMBER() OVER (partition by ip order by hit_time_gmt) as rnk from join_df) where rnk=1; """
