@@ -5,6 +5,7 @@ import pandas as pd
 import pandasql as ps
 import numpy as np
 from pandasql import sqldf
+import io
 from io import BytesIO
 s3_client = boto3.client('s3')
 
