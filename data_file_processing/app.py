@@ -9,7 +9,7 @@ s3_client = boto3.client('s3')
 
 class Events:
     
-    def function(x):
+    def function(self,x):
         sum=0
         #print("outer for:",str(x).split(','))
         for val in str(x).split(','):
@@ -20,7 +20,7 @@ class Events:
                 sum+=float(revenue[3].strip())
         return sum
 
-    def function2(x):
+    def function2(self,x):
         event=[]
         for event_trans in str(x).split(','):
             if str(event_trans) is None or str(event_trans) == "" or str(event_trans) == " " or str(event_trans) == "NaN" or str(event_trans) == "nan":
@@ -39,8 +39,8 @@ class Events:
             print("file:",s3_file_name)
             resp = s3_client.get_object(Bucket=bucket_name, Key=s3_file_name)
             df= pd.read_csv(resp['Body'], sep='\t')
-            df['revenue'] = df['product_list'].map(function)
-            df['even_list_values'] = df['event_list'].map(function2)
+            df['revenue'] = df['product_list'].map(self.function)
+            df['even_list_values'] = df['event_list'].map(self.function2)
             df['search_domain'] = df['referrer'].str.extract(r'(https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+)')
             df['search_key'] = df['referrer'].str.extract(r'\W*\\?=([^&#]*)')
             formatted_df = df[['ip','search_key','even_list_values', 'revenue', 'search_domain','hit_time_gmt']]
