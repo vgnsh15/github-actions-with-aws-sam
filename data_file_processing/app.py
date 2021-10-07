@@ -122,15 +122,30 @@ class Events:
         """
         
         try:
+            """
+            The bucket name and the S3 file name are fetched from the in-built the event trigger.
+            """
             bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
             s3_file_name = event["Records"][0]["s3"]["object"]["key"]
             print("S:",bucket_name)
             print("file:",s3_file_name)
             resp = s3_client.get_object(Bucket=bucket_name, Key=s3_file_name)
             df= pd.read_csv(resp['Body'], sep='\t')
+            """
+            Calling the revenue_cal method using map function 
+            """
             df['revenue'] = df['product_list'].map(self.revenue_cal)
+            """
+            Calling the purchase_trans_filter method using map function 
+            """
             df['even_list_values'] = df['event_list'].map(self.purchase_trans_filter)
+            """
+            Extracting the search domain from the referrer URL
+            """
             df['search_domain'] = df['referrer'].str.extract(r'(https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+)')
+            """
+            Extracting the search key from the referrer URL
+            """
             df['search_key'] = df['referrer'].str.extract(r'\W*\\?=([^&#]*)')
             formatted_df = df[['ip','search_key','even_list_values', 'revenue', 'search_domain','hit_time_gmt']]
             purchased_df_query = """SELECT ip FROM formatted_df where even_list_values = 1 order by ip,hit_time_gmt  """
@@ -138,20 +153,31 @@ class Events:
             purchased_df = ps.sqldf(purchased_df_query, locals())
             join_df = pd.merge(formatted_df, purchased_df,how='inner', on=['ip'])[['ip','search_key','search_domain','revenue','hit_time_gmt']]
             join_df.dropna()
+            """
+            Pandas native methods for Window functions to claculate rank based on partition by ip and order by hit time
+            """
             join_df['RN'] = join_df.sort_values(['hit_time_gmt'], ascending=[True]).groupby(['ip']).cumcount() + 1
+            """
+            Pandas native methods for Window functions to claculate sum based on partition by ip
+            """
             join_df['total_revenue'] = join_df.groupby('ip').revenue.transform(np.sum)
+            
             final_sql="""select search_key,search_domain,total_revenue from join_df where RN=1;"""
             
             revenue_df = ps.sqldf(final_sql,locals())
            
-                
+            """
+            Converting the final dataframe to csv buffer and drop the data to the S3 bucket
+            """
             with io.StringIO() as csv_buffer:
                 revenue_df.to_csv(csv_buffer, index=False)
 
                 response = s3_client.put_object(Bucket='adbassessment', Key="output_files/revenue.csv", Body=csv_buffer.getvalue())
 
                 status = response.get("ResponseMetadata", {}).get("HTTPStatusCode")
-
+                """
+                On Success upload to S3, the success messsage is passed as na output from the Lambda
+                """
                 if status == 200:
                     print(f"Successful S3 put_object response. Status - {status}")
                     return {
@@ -161,13 +187,16 @@ class Events:
                         # "location": ip.text.replace("\n", "")
                            }),
                     }
+ 
                 else:
+                    """
+                    Error mesage along with Status code is passed for debugging.
+                    """
                     print(f"Unsuccessful S3 put_object response. Status - {status}")
                     return {
                         "statusCode": status,
                         "body": json.dumps({
                         "message": "Something went wrong in the processing",
-                        # "location": ip.text.replace("\n", "")
                            }),
                     }
         
@@ -176,7 +205,8 @@ class Events:
 
 def lambda_handler(event, context):
     """
-
+    This is the main handler method which gets invoked by the lambda on trigger from S3 file drop.
+    
     Parameters
     ----------
     event: dict, required
