@@ -68,7 +68,7 @@ class Events:
             with io.StringIO() as csv_buffer:
                 revenue_df.to_csv(csv_buffer, index=False)
 
-                response = s3_client.put_object(Bucket='adbassessmwnt', Key="output_files/revenue.csv", Body=csv_buffer.getvalue())
+                response = s3_client.put_object(Bucket='adbassessment', Key="output_files/revenue.csv", Body=csv_buffer.getvalue())
 
                 status = response.get("ResponseMetadata", {}).get("HTTPStatusCode")
 
