@@ -149,7 +149,7 @@ class Events:
             df['search_key'] = df['referrer'].str.extract(r'\W*\\?=([^&#]*)')
             formatted_df = df[['ip','search_key','even_list_values', 'revenue', 'search_domain','hit_time_gmt']]
             purchased_df_query = """SELECT ip FROM formatted_df where even_list_values = 1 order by ip,hit_time_gmt  """
-            df_hit_query = """SELECT * FROM formatted_df f_df inner join purchased_df_query p_df on f_df.ip=p_df.ip where search_key !='nan' order by ip,hit_time_gmt  """
+            #df_hit_query = """SELECT * FROM formatted_df f_df inner join purchased_df_query p_df on f_df.ip=p_df.ip where search_key !='nan' order by ip,hit_time_gmt  """
             purchased_df = ps.sqldf(purchased_df_query, locals())
             join_df = pd.merge(formatted_df, purchased_df,how='inner', on=['ip'])[['ip','search_key','search_domain','revenue','hit_time_gmt']]
             join_df.dropna()
