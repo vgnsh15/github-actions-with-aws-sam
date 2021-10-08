@@ -158,7 +158,7 @@ class Events:
             Converting the final dataframe to csv buffer and drop the data to the S3 bucket
             """
             with io.StringIO() as csv_buffer:
-                revenue_df.to_csv(csv_buffer, index=False)
+                revenue_df.to_csv(csv_buffer, sep ='\t', index=False)
 
                 response = s3_client.put_object(Bucket='adbassessment', Key="output_files/revenue.csv", Body=csv_buffer.getvalue())
 
