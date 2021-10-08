@@ -7,6 +7,7 @@ import numpy as np
 from pandasql import sqldf
 import io
 from io import BytesIO
+from datetime import datetime
 s3_client = boto3.client('s3')
 
 class Events:
@@ -159,8 +160,10 @@ class Events:
             """
             with io.StringIO() as csv_buffer:
                 revenue_df.to_csv(csv_buffer, sep ='\t', index=False)
+                
+                output_file_name = "[{0}]_SearchKeywordPerformance.tab".format(datetime.today().strftime('%Y-%m-%d'))
 
-                response = s3_client.put_object(Bucket='adbassessment', Key="output_files/revenue.csv", Body=csv_buffer.getvalue())
+                response = s3_client.put_object(Bucket='adbassessment', Key="output_files/"+output_file_name, Body=csv_buffer.getvalue())
 
                 status = response.get("ResponseMetadata", {}).get("HTTPStatusCode")
                 """
